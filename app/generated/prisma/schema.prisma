@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id                   String         @id @default(uuid())
+  userId               String         @unique
+  email                String
+  subscriptionTier     String?
+  subscriptionActive   Boolean        @default(false)
+  stripeSubscriptionId String?        @unique
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  subscriptions        Subscription[] // Relation to track subscription history
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String
+  planId                 String
+  razorpaySubscriptionId String?   @unique
+  razorpayPaymentId      String?
+  status                 String // 'active', 'created', 'authenticated', 'pending', 'halted', 'cancelled', 'completed', 'expired'
+  planType               String // 'week', 'month', 'year'
+  startDate              DateTime?
+  endDate                DateTime?
+  isRecurring            Boolean   @default(false)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  profile                Profile   @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+}
