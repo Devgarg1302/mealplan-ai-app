@@ -156,6 +156,15 @@ export default function SubscribePage() {
     enabled: !!userId,
   });
 
+  const openPopUp = (data: { url: string; callbackUrl?: string | undefined; subscriptionId?: string | undefined; planId?: string | undefined; status?: string | undefined; }) => {
+    if (data.url) {
+      window.open(
+        data.url,
+       "_blank"
+      )
+    }
+  }
+
   // Verify payment on return from checkout
   const verificationMutation = useMutation({
     mutationFn: verifyPayment,
@@ -205,20 +214,11 @@ export default function SubscribePage() {
     },
     onSuccess: (data) => {
       toast.success("Redirecting to checkout!", { id: "subscribe" });
-
-      // Use the callback URL if available, otherwise fall back to the original URL
-
-      // Prioritize callbackUrl to ensure we return to our app
-      const redirectUrl = data.url;
-
-      // Open in the same window
-      window.location.assign(redirectUrl);
+      openPopUp(data);
     },
     onError: (error) => {
-      toast.error(error.message || "Something went wrong.", {
-        id: "subscribe",
-      });
-    },
+      toast.error(error.message || "Failed subscription");
+    }
   });
 
   // New mutation for cancelling a subscription

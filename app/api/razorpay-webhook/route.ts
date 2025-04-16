@@ -243,7 +243,7 @@ async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
         status: "active", // Mark as active when payment is captured
       },
     });
-    
+
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
 
   } catch (error) {
