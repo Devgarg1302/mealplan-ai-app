@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
 // Type definitions for Razorpay webhook payloads
@@ -48,27 +48,27 @@ export async function POST(request: NextRequest) {
       case "subscription.activated":
         await handleSubscriptionActivated(payload);
         break;
-      
+
       case "subscription.pending":
         await handleSubscriptionPending(payload);
         break;
-      
+
       case "subscription.halted":
         await handleSubscriptionHalted(payload);
         break;
-      
+
       case "subscription.cancelled":
         await handleSubscriptionCancelled(payload);
         break;
-      
+
       case "payment.captured":
         await handlePaymentCaptured(payload);
         break;
-      
+
       case "payment.failed":
         await handlePaymentFailed(payload);
         break;
-      
+
       default:
         console.log(`Unhandled webhook event: ${event}`);
     }
@@ -127,6 +127,9 @@ async function handleSubscriptionActivated(payload: RazorpayWebhookPayload) {
         stripeSubscriptionId: subscriptionId, // Using same field for consistency
       },
     });
+
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
   } catch (error) {
     console.error("Error handling activated subscription:", error);
   }
@@ -159,6 +162,9 @@ async function handleSubscriptionPending(payload: RazorpayWebhookPayload) {
         isRecurring: false, // Always non-recurring
       },
     });
+
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
   } catch (error) {
     console.error("Error handling pending subscription:", error);
   }
@@ -184,6 +190,9 @@ async function handleSubscriptionHalted(payload: RazorpayWebhookPayload) {
       where: { userId: subscription.userId },
       data: { subscriptionActive: false },
     });
+
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
   } catch (error) {
     console.error("Error handling halted subscription:", error);
   }
@@ -209,6 +218,8 @@ async function handleSubscriptionCancelled(payload: RazorpayWebhookPayload) {
       where: { userId: subscription.userId },
       data: { subscriptionActive: false },
     });
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
   } catch (error) {
     console.error("Error handling cancelled subscription:", error);
   }
@@ -217,7 +228,7 @@ async function handleSubscriptionCancelled(payload: RazorpayWebhookPayload) {
 async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
   const paymentId = payload.entity.id;
   const subscriptionId = payload.entity.subscription_id;
-  
+
   if (!subscriptionId) {
     console.log("Payment not associated with subscription");
     return;
@@ -232,6 +243,9 @@ async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
         status: "active", // Mark as active when payment is captured
       },
     });
+
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
   } catch (error) {
     console.error("Error handling payment captured:", error);
   }
@@ -239,7 +253,7 @@ async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
 
 async function handlePaymentFailed(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.subscription_id;
-  
+
   if (!subscriptionId) return;
 
   try {
@@ -247,12 +261,12 @@ async function handlePaymentFailed(payload: RazorpayWebhookPayload) {
       where: { razorpaySubscriptionId: subscriptionId },
       data: { status: "halted" },
     });
-    
+
     // Get the subscription to find the user
     const subscription = await prisma.subscription.findFirst({
       where: { razorpaySubscriptionId: subscriptionId },
     });
-    
+
     if (subscription) {
       // Update the user profile to reflect inactive subscription
       await prisma.profile.update({
@@ -260,6 +274,9 @@ async function handlePaymentFailed(payload: RazorpayWebhookPayload) {
         data: { subscriptionActive: false },
       });
     }
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`);
+
+
   } catch (error) {
     console.error("Error handling payment failure:", error);
   }
@@ -268,7 +285,7 @@ async function handlePaymentFailed(payload: RazorpayWebhookPayload) {
 function calculateEndDate(planType: string): Date {
   const now = new Date();
   const endDate = new Date(now);
-  
+
   switch (planType) {
     case "week":
       endDate.setDate(now.getDate() + 7);
@@ -282,6 +299,6 @@ function calculateEndDate(planType: string): Date {
     default:
       endDate.setMonth(now.getMonth() + 1); // Default to 1 month
   }
-  
+
   return endDate;
 } 

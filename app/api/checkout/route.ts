@@ -53,9 +53,6 @@ export async function POST(request: NextRequest) {
         });
 
         // Generate a callback URL that includes the subscription ID
-        const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const callbackUrl = `${origin}/subscribe?sessionId=${subscription.id}`;
-        console.log(`Generated callback URL: ${callbackUrl}`);
 
         await prisma.subscription.create({
             data: {
@@ -73,7 +70,6 @@ export async function POST(request: NextRequest) {
             planId: subscription.plan_id,
             status: subscription.status,
             url: subscription.short_url,
-            callbackUrl: callbackUrl,
         });
     } catch (error) {
         console.error("Error creating Razorpay subscription:", error);
