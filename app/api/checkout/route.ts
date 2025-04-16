@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({
-            key: process.env.RAZORPAY_KEY_ID,
             subscriptionId: subscription.id,
             planId: subscription.plan_id,
             status: subscription.status,
