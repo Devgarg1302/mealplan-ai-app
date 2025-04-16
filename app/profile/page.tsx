@@ -50,6 +50,17 @@ interface SubscriptionResponse {
   };
 }
 
+interface ChangePlanResponse {
+  success: boolean;
+  message: string;
+  subscription?: Subscription;
+}
+
+interface UnsubscribeResponse {
+  success: boolean;
+  message: string;
+}
+
 export default function ProfilePage() {
     const { isLoaded, isSignedIn, user } = useUser();
     const queryClient = useQueryClient();
@@ -87,9 +98,9 @@ export default function ProfilePage() {
 
     // Mutation: Change Subscription Plan
     const changePlanMutation = useMutation<
-        any, // Replace with actual response type if available
+        ChangePlanResponse,
         Error,
-        string // The newPriceId
+        string
     >({
         mutationFn: async (newPlan: string) => {
             const res = await fetch("/api/profile/change-plan", {
@@ -119,7 +130,7 @@ export default function ProfilePage() {
 
     // Mutation: Unsubscribe
     const unsubscribeMutation = useMutation<
-        any, // Replace with actual response type if available
+        UnsubscribeResponse,
         Error,
         void
     >({
