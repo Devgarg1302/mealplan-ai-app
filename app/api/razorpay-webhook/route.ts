@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
@@ -58,10 +58,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error processing webhook:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to process webhook";
     return NextResponse.json(
-      { error: error.message || "Failed to process webhook" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

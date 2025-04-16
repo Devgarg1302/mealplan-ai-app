@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { razorpay } from "@/lib/razorpay";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 
 // Define a type for Razorpay subscription
 type RazorpaySubscription = {
@@ -106,11 +106,11 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Subscription cancelled successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Razorpay cancellation error:", error);
 
       // Handle Razorpay cancellation error
-      if (error.message?.includes("completed") || error.message?.includes("already been processed")) {
+      if (error instanceof Error && (error.message?.includes("completed") || error.message?.includes("already been processed"))) {
         console.log("Razorpay error indicates completed subscription");
 
         // Just mark as cancelled in our database
@@ -130,10 +130,11 @@ export async function POST(request: NextRequest) {
       // Re-throw for other errors
       throw error;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error cancelling subscription:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to cancel subscription";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to cancel subscription" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

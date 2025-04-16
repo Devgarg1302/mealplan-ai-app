@@ -3,7 +3,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { availablePlans, Plan } from "@/lib/plans"; // Adjust the path based on your project structure
+import { availablePlans } from "@/lib/plans"; // Adjust the path based on your project structure
 import Image from "next/image";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast"; // Import toast

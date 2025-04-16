@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { razorpay } from "@/lib/razorpay";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import crypto from "crypto";
 
 // Helper function to calculate end date based on plan type
@@ -197,10 +197,11 @@ export async function POST(request: NextRequest) {
         message: "Payment verified and subscription activated",
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error verifying payment:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to verify payment";
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to verify payment" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

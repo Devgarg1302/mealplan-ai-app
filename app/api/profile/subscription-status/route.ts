@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { razorpay } from "@/lib/razorpay";
 
@@ -80,10 +80,11 @@ export async function GET() {
         planDetails
       } 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching subscription:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch subscription details.";
     return NextResponse.json(
-      { error: "Failed to fetch subscription details." },
+      { error: errorMessage },
       { status: 500 }
     );
   }

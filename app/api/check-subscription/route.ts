@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { razorpay } from "@/lib/razorpay";
 
 export async function GET(request: NextRequest) {
@@ -118,10 +118,11 @@ export async function GET(request: NextRequest) {
       isActive: false,
       isPending: false,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error checking subscription:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to check subscription status";
     return NextResponse.json(
-      { error: error.message || "Failed to check subscription status" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

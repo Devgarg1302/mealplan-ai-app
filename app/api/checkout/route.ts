@@ -1,8 +1,7 @@
 import { getPriceIdFromType } from "@/lib/plans";
 import { NextRequest, NextResponse } from "next/server";
 import { razorpay } from "@/lib/razorpay";
-import { availablePlans } from "@/lib/plans";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
     try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { razorpay } from "@/lib/razorpay";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 
 // Define a type for Razorpay subscription
 type RazorpaySubscription = {
@@ -147,10 +147,11 @@ export async function POST(request: NextRequest) {
       message: `Subscription status is: ${subscription.status}. Cannot resume payment at this time.`,
       status: subscription.status,
     }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error resuming payment:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to resume payment";
     return NextResponse.json(
-      { error: error.message || "Failed to resume payment" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
