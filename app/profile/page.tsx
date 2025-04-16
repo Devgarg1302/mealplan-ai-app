@@ -19,6 +19,21 @@ interface PlanDetails {
   name: string;
 }
 
+interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  razorpaySubscriptionId: string | null;
+  razorpayPaymentId: string | null;
+  status: 'active' | 'created' | 'authenticated' | 'pending' | 'halted' | 'cancelled' | 'completed' | 'expired';
+  planType: 'week' | 'month' | 'year';
+  startDate: Date | null;
+  endDate: Date | null;
+  isRecurring: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface SubscriptionResponse {
   subscription: {
     id: string;
@@ -29,9 +44,9 @@ interface SubscriptionResponse {
     stripeSubscriptionId?: string;
     createdAt: string;
     updatedAt: string;
-    subscriptions: any[]; // Subscription records
-    currentSubscription: any; // Current subscription record
-    planDetails?: PlanDetails; // Plan details from Razorpay
+    subscriptions: Subscription[];
+    currentSubscription: Subscription | null;
+    planDetails?: PlanDetails;
   };
 }
 

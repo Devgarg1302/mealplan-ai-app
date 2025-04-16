@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
 import crypto from "crypto";
 
+// Type definitions for Razorpay webhook payloads
+interface RazorpayEntity {
+  id: string;
+  plan_id: string;
+  notes?: {
+    userId?: string;
+    planType?: string;
+    email?: string;
+  };
+  subscription_id?: string;
+}
+
+interface RazorpayWebhookPayload {
+  entity: RazorpayEntity;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -68,14 +84,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleSubscriptionActivated(payload: any) {
+async function handleSubscriptionActivated(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.id;
   const notes = payload.entity.notes || {};
   const userId = notes.userId;
   const planType = notes.planType;
+  const planId = payload.entity.plan_id;
 
-  if (!userId) {
-    console.error("No userId found in subscription notes");
+  if (!userId || !planType || !planId) {
+    console.error("Missing required fields in subscription payload");
     return;
   }
 
@@ -91,7 +108,7 @@ async function handleSubscriptionActivated(payload: any) {
       },
       create: {
         userId,
-        planId: payload.entity.plan_id,
+        planId,
         razorpaySubscriptionId: subscriptionId,
         status: "active",
         planType,
@@ -115,13 +132,17 @@ async function handleSubscriptionActivated(payload: any) {
   }
 }
 
-async function handleSubscriptionPending(payload: any) {
+async function handleSubscriptionPending(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.id;
   const notes = payload.entity.notes || {};
   const userId = notes.userId;
   const planType = notes.planType;
+  const planId = payload.entity.plan_id;
 
-  if (!userId) return;
+  if (!userId || !planType || !planId) {
+    console.error("Missing required fields in subscription payload");
+    return;
+  }
 
   try {
     await prisma.subscription.upsert({
@@ -131,7 +152,7 @@ async function handleSubscriptionPending(payload: any) {
       },
       create: {
         userId,
-        planId: payload.entity.plan_id,
+        planId,
         razorpaySubscriptionId: subscriptionId,
         status: "pending",
         planType,
@@ -143,7 +164,7 @@ async function handleSubscriptionPending(payload: any) {
   }
 }
 
-async function handleSubscriptionHalted(payload: any) {
+async function handleSubscriptionHalted(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.id;
 
   try {
@@ -168,7 +189,7 @@ async function handleSubscriptionHalted(payload: any) {
   }
 }
 
-async function handleSubscriptionCancelled(payload: any) {
+async function handleSubscriptionCancelled(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.id;
 
   try {
@@ -193,7 +214,7 @@ async function handleSubscriptionCancelled(payload: any) {
   }
 }
 
-async function handlePaymentCaptured(payload: any) {
+async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
   const paymentId = payload.entity.id;
   const subscriptionId = payload.entity.subscription_id;
   
@@ -216,7 +237,7 @@ async function handlePaymentCaptured(payload: any) {
   }
 }
 
-async function handlePaymentFailed(payload: any) {
+async function handlePaymentFailed(payload: RazorpayWebhookPayload) {
   const subscriptionId = payload.entity.subscription_id;
   
   if (!subscriptionId) return;
